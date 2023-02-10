@@ -46,7 +46,8 @@ CAN_HandleTypeDef hcan;
 
 /* USER CODE BEGIN PV */
 volatile uint32_t sensorValues[8];
-const int adcChannelCount = sizeof(sensorValues) / sizeof(sensorValues[0]);
+const int dataLength = sizeof(sensorValues) / sizeof(sensorValues[0]);
+
 volatile int adcReady = 0;
 /* USER CODE END PV */
 
@@ -72,6 +73,7 @@ static void MX_CAN_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+	printf("size of sensorValues: %d size of sensorValues[0]: %d \n", sizeof(sensorValues) , sizeof(sensorValues[0]));
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -116,16 +118,16 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  HAL_ADC_Start_DMA(&hadc1, sensorValues, adcChannelCount); // start adc in DMA mode
-	  while(adcReady == 0){
 
-	  }
-	  adcReady = 0;
-	  printf("s1: %d \n", sensorValues[0]);
-	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
-	  HAL_Delay(500);
     /* USER CODE BEGIN 3 */
+	  HAL_ADC_Start_DMA(&hadc1, sensorValues, dataLength); // start adc in DMA mode
+	  	  while(adcReady == 0){
 
+	  	  }
+	  	  adcReady = 0;
+	  	  printf("s1: %d s2: %d s3: %d s4: %d s5: %d s6: %d s7: %d s8: %d \n", sensorValues[0], sensorValues[1], sensorValues[2], sensorValues[3], sensorValues[4], sensorValues[5], sensorValues[6], sensorValues[7]);
+	  	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+	  	  HAL_Delay(500);
   }
   /* USER CODE END 3 */
 }
@@ -195,10 +197,10 @@ static void MX_ADC1_Init(void)
   */
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_LEFT;
   hadc1.Init.NbrOfConversion = 8;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
@@ -209,7 +211,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
