@@ -121,12 +121,13 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  HAL_ADC_Start_DMA(&hadc1, sensorValues, dataLength); // start adc in DMA mode
+	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
 	  	  while(adcReady == 0){
 
 	  	  }
 	  	  adcReady = 0;
 	  	  printf("s1: %d s2: %d s3: %d s4: %d s5: %d s6: %d s7: %d s8: %d \n", sensorValues[0], sensorValues[1], sensorValues[2], sensorValues[3], sensorValues[4], sensorValues[5], sensorValues[6], sensorValues[7]);
-	  	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_1);
+
 	  	  HAL_Delay(500);
   }
   /* USER CODE END 3 */
