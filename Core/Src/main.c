@@ -83,7 +83,7 @@ int main(void)
 
   /* USER CODE BEGIN Init */
   CAN_TxHeaderTypeDef   TxHeader;
-  uint16_t               TxData[4];
+  uint8_t               TxData[8];
   uint32_t              TxMailbox;
 
 
@@ -115,6 +115,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	  //@todo might need to add some digital filtering if the hardware filter isn't enough
 	  HAL_ADC_Start_DMA(&hadc1, sensorValues, dataLength); // start adc in DMA mode
 	  //HAL_CAN_Start(&hcan);
 	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
@@ -122,7 +124,7 @@ int main(void)
 
 	  	  }
 	  adcReady = 0;
-	  printf("s1: %d s2: %d s3: %d s4: %d s5: %d s6: %d s7: %d s8: %d \n", sensorValues[0], sensorValues[1], sensorValues[2], sensorValues[3], sensorValues[4], sensorValues[5], sensorValues[6], sensorValues[7]);
+	  printf("s1: %x s2: %x s3: %x s4: %x s5: %x s6: %x s7: %x s8: %x \n", sensorValues[0], sensorValues[1], sensorValues[2], sensorValues[3], sensorValues[4], sensorValues[5], sensorValues[6], sensorValues[7]);
 
 	  TxHeader.IDE = CAN_ID_STD;
 	  TxHeader.RTR = CAN_RTR_DATA;
@@ -130,30 +132,38 @@ int main(void)
 
 	  //**Send the first set of sensors:
 	  TxHeader.StdId = 0x103;
-	  TxData[0] = sensorValues[0];
-	  TxData[1] = sensorValues[1];
-	  TxData[2] = sensorValues[2];
-	  TxData[3] = sensorValues[3];
-
-	  if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, (uint8_t*)TxData, &TxMailbox) != HAL_OK)
+	  TxData[0] = sensorValues[0] >>8;
+	  TxData[1] = sensorValues[0] & 0x00ff;
+	  TxData[2] = sensorValues[1] >>8;
+	  TxData[3] = sensorValues[1] & 0x00ff;
+	  TxData[4] = sensorValues[2] >>8;
+	  TxData[5] = sensorValues[2] & 0x00ff;
+	  TxData[6] = sensorValues[3] >>8;
+	  TxData[7] = sensorValues[3] & 0x00ff;
+	  // we shift the bits to split a 16bit value into 2 8 bit values
+	  if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
 	  {
 	     Error_Handler ();
 	  }
 	  //*********************************
 	  //**Send the second set of sensors:
-	  	  TxHeader.StdId = 0x104;
-	  	  TxData[0] = sensorValues[4];
-	  	  TxData[1] = sensorValues[5];
-	  	  TxData[2] = sensorValues[6];
-	  	  TxData[3] = sensorValues[7];
+	  TxHeader.StdId = 0x104;
+	  TxData[0] = sensorValues[4] >>8;
+	  TxData[1] = sensorValues[4] & 0x00ff;
+	  TxData[2] = sensorValues[5] >>8;
+	  TxData[3] = sensorValues[5] & 0x00ff;
+	  TxData[4] = sensorValues[6] >>8;
+	  TxData[5] = sensorValues[6] & 0x00ff;
+	  TxData[6] = sensorValues[7] >>8;
+	  TxData[7] = sensorValues[7] & 0x00ff;
 
-	  	  if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, (uint8_t*)TxData, &TxMailbox) != HAL_OK)
-	  	  {
-	  	     Error_Handler ();
-	  	  }
-	  	  //*********************************
+	  if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, (uint8_t*)TxData, &TxMailbox) != HAL_OK)
+	  {
+		 Error_Handler ();
+	  }
+	  //*********************************
 
-	  HAL_Delay(500);
+	  HAL_Delay(100);
   }
   /* USER CODE END 3 */
 }
