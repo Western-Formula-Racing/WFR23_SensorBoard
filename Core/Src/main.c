@@ -83,7 +83,7 @@ int main(void)
 
   /* USER CODE BEGIN Init */
   CAN_TxHeaderTypeDef   TxHeader;
-  uint8_t               TxData[8];
+  uint16_t               TxData[4];
   uint32_t              TxMailbox;
 
 
@@ -125,22 +125,33 @@ int main(void)
 	  printf("s1: %d s2: %d s3: %d s4: %d s5: %d s6: %d s7: %d s8: %d \n", sensorValues[0], sensorValues[1], sensorValues[2], sensorValues[3], sensorValues[4], sensorValues[5], sensorValues[6], sensorValues[7]);
 
 	  TxHeader.IDE = CAN_ID_STD;
-	  TxHeader.StdId = 0x446;
 	  TxHeader.RTR = CAN_RTR_DATA;
-	  TxHeader.DLC = 2;
+	  TxHeader.DLC = 8;
 
-	  //**Temporary Testing Data**
-	  i++;
-	  TxData[0] = 50;
-	  TxData[1] = i;
-	  //**************************
+	  //**Send the first set of sensors:
+	  TxHeader.StdId = 0x103;
+	  TxData[0] = sensorValues[0];
+	  TxData[1] = sensorValues[1];
+	  TxData[2] = sensorValues[2];
+	  TxData[3] = sensorValues[3];
 
-	  if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
+	  if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, (uint8_t*)TxData, &TxMailbox) != HAL_OK)
 	  {
 	     Error_Handler ();
 	  }
+	  //*********************************
+	  //**Send the second set of sensors:
+	  	  TxHeader.StdId = 0x104;
+	  	  TxData[0] = sensorValues[4];
+	  	  TxData[1] = sensorValues[5];
+	  	  TxData[2] = sensorValues[6];
+	  	  TxData[3] = sensorValues[7];
 
-
+	  	  if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, (uint8_t*)TxData, &TxMailbox) != HAL_OK)
+	  	  {
+	  	     Error_Handler ();
+	  	  }
+	  	  //*********************************
 
 	  HAL_Delay(500);
   }
