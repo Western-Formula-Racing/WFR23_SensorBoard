@@ -82,16 +82,10 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-/*	uint8_t sensor1_value = 0;
-	uint8_t sensor2_value = 0;
-	uint8_t sensor3_value = 0;
-	uint8_t sensor4_value = 0;
-	uint8_t sensor5_value = 0;
-	uint8_t sensor6_value = 0;
-	uint8_t sensor7_value = 0;
-	uint8_t sensor8_value = 0;*/
+  CAN_TxHeaderTypeDef   TxHeader;
+  uint8_t               TxData[8];
+  uint32_t              TxMailbox;
 
-  //uint32_t sensorValues[8];
 
   /* USER CODE END Init */
 
@@ -109,7 +103,8 @@ int main(void)
   MX_CAN_Init();
   /* USER CODE BEGIN 2 */
 
-
+  HAL_CAN_Start(&hcan);
+  int i = 0;
 
   /* USER CODE END 2 */
 
@@ -121,12 +116,32 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  HAL_ADC_Start_DMA(&hadc1, sensorValues, dataLength); // start adc in DMA mode
+	  //HAL_CAN_Start(&hcan);
 	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	  	  while(adcReady == 0){
 
 	  	  }
 	  adcReady = 0;
 	  printf("s1: %d s2: %d s3: %d s4: %d s5: %d s6: %d s7: %d s8: %d \n", sensorValues[0], sensorValues[1], sensorValues[2], sensorValues[3], sensorValues[4], sensorValues[5], sensorValues[6], sensorValues[7]);
+
+	  TxHeader.IDE = CAN_ID_STD;
+	  TxHeader.StdId = 0x446;
+	  TxHeader.RTR = CAN_RTR_DATA;
+	  TxHeader.DLC = 2;
+
+	  //**Temporary Testing Data**
+	  i++;
+	  TxData[0] = 50;
+	  TxData[1] = i;
+	  //**************************
+
+	  if (HAL_CAN_AddTxMessage(&hcan, &TxHeader, TxData, &TxMailbox) != HAL_OK)
+	  {
+	     Error_Handler ();
+	  }
+
+
+
 	  HAL_Delay(500);
   }
   /* USER CODE END 3 */
@@ -160,7 +175,7 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
@@ -301,15 +316,15 @@ static void MX_CAN_Init(void)
 
   /* USER CODE END CAN_Init 1 */
   hcan.Instance = CAN1;
-  hcan.Init.Prescaler = 16;
+  hcan.Init.Prescaler = 1;
   hcan.Init.Mode = CAN_MODE_NORMAL;
   hcan.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan.Init.TimeSeg1 = CAN_BS1_1TQ;
-  hcan.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan.Init.TimeSeg1 = CAN_BS1_3TQ;
+  hcan.Init.TimeSeg2 = CAN_BS2_4TQ;
   hcan.Init.TimeTriggeredMode = DISABLE;
-  hcan.Init.AutoBusOff = DISABLE;
-  hcan.Init.AutoWakeUp = DISABLE;
-  hcan.Init.AutoRetransmission = DISABLE;
+  hcan.Init.AutoBusOff = ENABLE;
+  hcan.Init.AutoWakeUp = ENABLE;
+  hcan.Init.AutoRetransmission = ENABLE;
   hcan.Init.ReceiveFifoLocked = DISABLE;
   hcan.Init.TransmitFifoPriority = DISABLE;
   if (HAL_CAN_Init(&hcan) != HAL_OK)
